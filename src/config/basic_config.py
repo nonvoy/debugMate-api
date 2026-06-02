@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from pydantic import BaseModel, Field, PositiveInt
+from pydantic import BaseModel, Field, NonNegativeInt, PositiveInt
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -26,6 +26,19 @@ class CeleryConfig(BaseModel):
     queue_url: str | None = Field(default=None, description="URL of the Celery task queue")
 
 
+class OpenSearchConfig(BaseModel):
+    """Configuration for OpenSearch."""
+
+    url: str = Field(..., description="URL of the OpenSearch cluster")
+    username: str | None = Field(default=None, description="Username for OpenSearch authentication")
+    password: str | None = Field(default=None, description="Password for OpenSearch authentication")
+    verify_certs: bool = Field(default=True, description="Verify SSL certificates for OpenSearch connection")
+    http_compress: bool = Field(default=True, description="Enable HTTP compression for OpenSearch connection")
+    timeout: PositiveInt = Field(default=30, description="Timeout for OpenSearch connection in seconds")
+    max_retries: NonNegativeInt = Field(default=3, description="Maximum number of retries for OpenSearch connection")
+    retry_on_timeout: bool = Field(default=True, description="Retry on timeout for OpenSearch connection")
+
+
 class BasicConfig(BaseSettings):
     """Basic configuration for the application."""
 
@@ -34,6 +47,7 @@ class BasicConfig(BaseSettings):
     log_level: str = Field(default="INFO", description="Logging level for the application")
     celery: CeleryConfig = Field(default_factory=CeleryConfig, description="Celery configuration")
     aws: AWSConfig = Field(default_factory=AWSConfig, description="AWS configuration")
+    opensearch: OpenSearchConfig = Field(default_factory=OpenSearchConfig, description="OpenSearch configuration")  # type: ignore[arg-type]
 
     model_config = SettingsConfigDict(
         env_file=".env",
