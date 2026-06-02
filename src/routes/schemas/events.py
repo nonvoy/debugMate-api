@@ -66,3 +66,25 @@ class EventGet(Event):
         None, description="The unique identifier of the batch this event belongs to", examples=["123e4567-e89b-12d3-a456-426614174001"]
     )
     published_at: dt.datetime = Field(..., description="The timestamp when the event was published", examples=["2024-06-01T12:00:00Z"])
+    normalized_message: str | None = Field(
+        None,
+        min_length=1,
+        description="The normalized message of the event. This field will be non-empty only after the event has been processed.",
+        examples=["user <email> login successful", "payment <ID> failed due to insufficient funds"],
+    )
+    fingerprint: str | None = Field(
+        None,
+        description="The fingerprint of the event used for grouping similar events. This field will be non-empty only after the event has been processed.",  # noqa: E501
+        examples=["031edd7d41651593c5fe5c006fa5752b37fddff7bc4e843aa6af0c950f4b9406"],
+    )
+    incident_id: UUID | None = Field(
+        None,
+        description="The unique identifier of the incident this event is associated with (if any)",
+        examples=["123e4567-e89b-12d3-a456-426614174002"],
+    )
+    received_at: dt.datetime | None = Field(
+        None,
+        description="The timestamp when the event was received for processing. This field will be non-empty only after the event has been processed.",
+        examples=["2024-06-01T12:10:00Z"],
+    )
+    updated_at: dt.datetime | None = Field(None, description="The timestamp when the event was last updated.", examples=["2024-06-01T12:15:00Z"])

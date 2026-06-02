@@ -33,6 +33,15 @@ class OpenSearchClient:
             http_auth=http_auth,
         )
 
+    def get_event_by_id(self, event_id: str) -> dict | None:
+        """Retrieves an event by its ID from OpenSearch."""
+        try:
+            response = self.__client.get(index=EVENTS_INDEX, id=event_id)
+            return response["_source"]
+        except Exception as e:
+            logger.error(f"Error retrieving event with ID: {event_id} - {str(e)}")
+            return None
+
 
 @lru_cache()
 def get_opensearch_client() -> OpenSearchClient:
