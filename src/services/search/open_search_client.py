@@ -42,6 +42,15 @@ class OpenSearchClient:
             logger.error(f"Error retrieving event with ID: {event_id} - {str(e)}")
             return None
 
+    def get_events_by_batch_id(self, batch_id: str) -> list[dict]:
+        """Retrieves events by batch ID from OpenSearch."""
+        try:
+            response = self.__client.search(index=EVENTS_INDEX, body={"query": {"match": {"batch_id": batch_id}}})
+            return [hit["_source"] for hit in response["hits"]["hits"]]
+        except Exception as e:
+            logger.error(f"Error retrieving events with batch ID: {batch_id} - {str(e)}")
+            return []
+
 
 @lru_cache()
 def get_opensearch_client() -> OpenSearchClient:

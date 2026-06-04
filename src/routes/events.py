@@ -73,7 +73,35 @@ async def publish_event(event: EventCreate, celery_app: Annotated[Celery, Depend
     return created_event
 
 
-@router.get("/{event_id}", response_model=EventGet, status_code=status.HTTP_200_OK)
+@router.get("/batch/{batch_id}", response_model=list[EventGet], status_code=status.HTTP_200_OK)
+async def get_events_by_batch_id(
+    batch_id: uuid.UUID, opensearch_client: Annotated[OpenSearchClient, Depends(get_opensearch_client)]
+) -> list[EventGet]:
+    """
+    Retrieve events by their batch ID.
+
+    This endpoint allows you to fetch all events that were published together in a batch using the unique batch identifier (UUID).
+
+    - **batch_id**: The unique identifier of the batch to retrieve events for.
+
+    Returns a list of events associated with the specified batch ID.
+    """
+    logger.info(f"Retrieving events with batch ID: {batch_id}")
+    events_data = opensearch_client.get_events_by_batch_id(str(batch_id))
+    if not events_data:
+        logger.warning(f"No events found for batch ID: {batch_id}.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No events found for the specified batch ID")
+
+    return [EventGet(**event) for event in events_data]
+
+
+@router.get(
+    "/{event_id}",
+    responses={
+        status.HTTP_200_OK: {"model": EventGet, "description": "Event retrieved successfully."},
+        status.HTTP_404_NOT_FOUND: {"description": "Event not found."},
+    },
+)
 async def get_event(event_id: uuid.UUID, opensearch_client: Annotated[OpenSearchClient, Depends(get_opensearch_client)]) -> EventGet:
     """
     Retrieve an event by its unique identifier.
