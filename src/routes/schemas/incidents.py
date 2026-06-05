@@ -75,3 +75,5 @@ class IncidentQuery(BaseModel):
     start_time_to: dt.datetime | None = Field(
         None, description="Filter incidents that started before this timestamp", examples=["2024-06-30T23:59:59Z"]
     )
+    page: PositiveInt = Field(default=1, description="Page number (1-based)", examples=[1])
+    page_size: PositiveInt = Field(default=20, description="Number of items per page (max 100)", examples=[20], le=100)

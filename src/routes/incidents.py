@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from src.config.basic_config import get_config
 from src.config.logger import get_logger
 from src.routes.schemas.incidents import IncidentGet, IncidentQuery
+from src.routes.schemas.pagination import PaginatedResponse, calculate_pages
 from src.services.db.db_client import DBClient, get_db_client
 
 config = get_config()
@@ -40,19 +41,27 @@ async def get_incident(incident_id: int, db_client: Annotated[DBClient, Depends(
 
 @router.get(
     "/",
-    response_model=list[IncidentGet],
+    response_model=PaginatedResponse[IncidentGet],
     status_code=status.HTTP_200_OK,
 )
 async def get_incidents(
     db_client: Annotated[DBClient, Depends(get_db_client)],
     query: Annotated[IncidentQuery, Query()],
-) -> list[IncidentGet]:
+) -> PaginatedResponse[IncidentGet]:
     """
     Retrieve all incidents.
 
-    This endpoint allows you to fetch a list of all incidents currently recorded in the system.
+    This endpoint allows you to fetch a paginated list of incidents recorded in the system.
+    Use `page` and `page_size` query parameters to control pagination (max page_size: 100).
 
-    Returns a list of incidents, each containing details such as type, associated events, time frame, status, comments, and assignment information.
+    Returns a paginated response containing incidents with their details such as type, associated events,
+    time frame, status, comments, and assignment information.
     """
-    incidents = db_client.get_incidents(query)
-    return [IncidentGet.model_validate(incident) for incident in incidents]
+    incidents, total = db_client.get_incidents(query)
+    return PaginatedResponse[IncidentGet](
+        items=[IncidentGet.model_validate(incident) for incident in incidents],
+        total=total,
+        page=query.page,
+        page_size=query.page_size,
+        pages=calculate_pages(total, query.page_size),
+    )

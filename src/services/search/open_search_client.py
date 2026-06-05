@@ -10,7 +10,6 @@ logger = get_logger(__name__)
 
 
 EVENTS_INDEX = "debugmate-events"
-INCIDENTS_INDEX = "debugmate-incidents"
 
 
 class OpenSearchClient:

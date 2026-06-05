@@ -95,7 +95,7 @@ def test_fetch_incidents_with_query(client: TestClient):
     """Test fetching incidents with query filters from the database."""
 
     # Given
-    incidents_data = INCIDENTS_FETCH_DATA[:1]
+    incidents_data = INCIDENTS_FETCH_DATA[1:]
 
     class DBClientStub:
         @staticmethod
@@ -107,7 +107,9 @@ def test_fetch_incidents_with_query(client: TestClient):
             assert query.start_time_from.isoformat() == "2024-06-01T00:00:00+00:00"
             assert query.start_time_to is not None
             assert query.start_time_to.isoformat() == "2024-06-30T23:59:59+00:00"
-            return incidents_data
+            assert query.page == 2
+            assert query.page_size == 1
+            return incidents_data, len(INCIDENTS_FETCH_DATA)
 
     app.dependency_overrides[get_db_client] = lambda: DBClientStub()
 
@@ -121,6 +123,8 @@ def test_fetch_incidents_with_query(client: TestClient):
                 "status": "open",
                 "start_time_from": "2024-06-01T00:00:00Z",
                 "start_time_to": "2024-06-30T23:59:59Z",
+                "page": 2,
+                "page_size": 1,
             },
         )
     finally:
@@ -128,4 +132,9 @@ def test_fetch_incidents_with_query(client: TestClient):
 
     # Then
     assert fetch_response.status_code == status.HTTP_200_OK
-    assert fetch_response.json() == incidents_data
+    response_body = fetch_response.json()
+    assert response_body["total"] == len(INCIDENTS_FETCH_DATA)
+    assert response_body["page"] == 2
+    assert response_body["page_size"] == 1
+    assert response_body["pages"] == 2
+    assert response_body["items"] == incidents_data

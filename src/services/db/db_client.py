@@ -2,7 +2,7 @@ from functools import lru_cache
 from uuid import UUID
 
 from pydantic import PositiveInt
-from sqlmodel import Session, create_engine, select
+from sqlmodel import Session, col, create_engine, func, select
 
 from src.config.basic_config import get_config
 from src.config.logger import get_logger
@@ -24,8 +24,8 @@ class DBClient:
         with Session(self.engine) as session:
             return session.get(Incident, incident_id)
 
-    def get_incidents(self, query: IncidentQuery) -> list[Incident]:
-        """Returns incidents matching the provided query."""
+    def get_incidents(self, query: IncidentQuery) -> tuple[list[Incident], int]:
+        """Returns a page of incidents matching the provided query and the total count."""
         statement = select(Incident)
         if query.service is not None:
             statement = statement.where(Incident.service == query.service)
@@ -38,8 +38,13 @@ class DBClient:
         if query.start_time_to is not None:
             statement = statement.where(Incident.start_time <= query.start_time_to)
 
+        statement = statement.order_by(col(Incident.created_at).desc(), col(Incident.id).desc())
+        offset = (query.page - 1) * query.page_size
+
         with Session(self.engine) as session:
-            return list(session.exec(statement).all())
+            total = session.exec(select(func.count()).select_from(statement.subquery())).one()
+            items = list(session.exec(statement.offset(offset).limit(query.page_size)).all())
+            return items, total
 
     def get_incident_id_for_event(self, event_id: UUID) -> PositiveInt | None:
         """Returns the incident ID associated with the given event ID, or None if not found."""
