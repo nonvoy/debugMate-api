@@ -5,6 +5,8 @@ from pydantic import PositiveInt
 from sqlalchemy import Column, DateTime
 from sqlmodel import Field, SQLModel
 
+from src.routes.schemas.incidents import IncidentStatus
+
 
 class Incident(SQLModel, table=True):
     """SQLModel table definition for incidents (read-only in this service)."""
@@ -18,7 +20,7 @@ class Incident(SQLModel, table=True):
     service: str = Field(..., nullable=False)
     start_time: dt.datetime = Field(..., sa_column=Column(DateTime(timezone=True), nullable=False))
     end_time: dt.datetime = Field(..., sa_column=Column(DateTime(timezone=True), nullable=False))
-    status: str = Field(..., nullable=False)
+    status: IncidentStatus = Field(..., nullable=False)
     comment: str | None = Field(None, nullable=True)
     assigned_to: str | None = Field(None, nullable=True)
     created_at: dt.datetime = Field(..., sa_column=Column(DateTime(timezone=True), nullable=False))

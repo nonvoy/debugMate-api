@@ -56,6 +56,14 @@ class Incident(BaseModel):
             raise ValueError("Fingerprint is required for incidents of type 'fingerprint'")
         return value
 
+    @field_validator("status", mode="before")
+    @classmethod
+    def lowercase_status(cls, value: str) -> IncidentStatus:
+        """Converts the status value to lowercase to ensure consistency."""
+        if isinstance(value, str):
+            return IncidentStatus(value.lower())
+        return value
+
 
 class IncidentGet(Incident):
     """Model for retrieving an incident, including its unique ID."""

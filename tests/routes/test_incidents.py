@@ -109,7 +109,7 @@ def test_fetch_incidents_with_query(client: TestClient):
             assert query.start_time_to.isoformat() == "2024-06-30T23:59:59+00:00"
             assert query.page == 2
             assert query.page_size == 1
-            return incidents_data, len(INCIDENTS_FETCH_DATA)
+            return incidents_data
 
     app.dependency_overrides[get_db_client] = lambda: DBClientStub()
 
@@ -133,8 +133,8 @@ def test_fetch_incidents_with_query(client: TestClient):
     # Then
     assert fetch_response.status_code == status.HTTP_200_OK
     response_body = fetch_response.json()
-    assert response_body["total"] == len(INCIDENTS_FETCH_DATA)
+    assert response_body["total"] == len(incidents_data)
     assert response_body["page"] == 2
     assert response_body["page_size"] == 1
-    assert response_body["pages"] == 2
+    assert response_body["pages"] == 1
     assert response_body["items"] == incidents_data

@@ -36,7 +36,7 @@ async def get_incident(incident_id: int, db_client: Annotated[DBClient, Depends(
         logger.warning(f"Incident with ID {incident_id} not found.")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Incident not found")
 
-    return IncidentGet.model_validate(incident)
+    return incident
 
 
 @router.get(
@@ -57,11 +57,12 @@ async def get_incidents(
     Returns a paginated response containing incidents with their details such as type, associated events,
     time frame, status, comments, and assignment information.
     """
-    incidents, total = db_client.get_incidents(query)
+
+    incidents = db_client.get_incidents(query)
     return PaginatedResponse[IncidentGet](
-        items=[IncidentGet.model_validate(incident) for incident in incidents],
-        total=total,
+        items=incidents,
+        total=len(incidents),
         page=query.page,
         page_size=query.page_size,
-        pages=calculate_pages(total, query.page_size),
+        pages=calculate_pages(len(incidents), query.page_size),
     )
