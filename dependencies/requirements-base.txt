@@ -14,3 +14,5 @@ typing-inspection==0.4.2
 typing_extensions==4.15.0
 uvicorn==0.48.0
 opensearch-py==3.1.0
+sqlmodel==0.0.38
+psycopg2-binary==2.9.12

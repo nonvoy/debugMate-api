@@ -48,6 +48,7 @@ class BasicConfig(BaseSettings):
     celery: CeleryConfig = Field(default_factory=CeleryConfig, description="Celery configuration")
     aws: AWSConfig = Field(default_factory=AWSConfig, description="AWS configuration")
     opensearch: OpenSearchConfig = Field(default_factory=OpenSearchConfig, description="OpenSearch configuration")  # type: ignore[arg-type]
+    db_url: str = Field(..., description="URL of the PostgreSQL database")
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -59,4 +60,4 @@ class BasicConfig(BaseSettings):
 @lru_cache()
 def get_config() -> BasicConfig:
     """Returns the basic configuration for the application."""
-    return BasicConfig()
+    return BasicConfig()  # type: ignore[call-arg]
